@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Boletas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">GENERA BOLETAS</div>
+    <div class="logo-sub">Sistema de generación profesional</div>
+  </div>
+</header>
+
+<div class="main-layout">
+  <aside class="panel">
+
+    <!-- ══════════════════════════ PANEL ══════════════════════════ -->
+    <div id="tab-info">
+
+      <div class="section-title">Información de la Boleta</div>
+
+      <div class="form-group">
+        <label>Título principal</label>
+        <input type="text" id="titulo" value="GRAN RIFA BENEFACTORA" placeholder="Ej: GRAN RIFA BENEFACTORA">
+      </div>
+
+      <!-- Título -->
+      <div class="toggle-row">
+        <span class="toggle-label">Título en negrita</span>
+        <label class="toggle">
+          <input type="checkbox" id="tituloBold" checked onchange="updateLivePreview()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <label>Fecha del sorteo</label>
+          <input type="date" id="fecha">
+        </div>
+        <div class="form-group">
+          <label>Fecha de expiración</label>
+          <input type="date" id="expiracion">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>WhatsApp / Contacto</label>
+        <input type="text" id="whatsapp" placeholder="+593 300 000 0000">
+      </div>
+
+      <div class="form-group">
+        <label>Mensaje línea 1</label>
+        <input type="text" id="msg1" value="Premio mayor: Un automóvil último modelo">
+      </div>
+      <div class="form-group">
+        <label>Mensaje línea 2</label>
+        <input type="text" id="msg2" value="2do premio: Viaje internacional para dos">
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">Personalización</div>
+
+      <div class="form-group">
+        <label>Imagen de fondo</label>
+        <div class="upload-area">
+          <input type="file" id="bgImage" accept="image/*" onchange="handleImageUpload(this)">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-text">Clic para seleccionar imagen</div>
+          <div class="upload-hint">JPG, PNG, WEBP — 1200×500px recomendado</div>
+          <img id="imgPreview" class="img-preview" alt="Vista previa">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Colores de la boleta</label>
+        <div class="color-grid">
+          <div class="color-item">
+            <span>Título / Texto</span>
+            <div class="color-swatch" onclick="document.getElementById('cTitulo').click()">
+              <input type="color" id="cTitulo" value="#FFFFFF" oninput="syncColor('cTitulo','hTitulo')">
+              <span class="color-hex" id="hTitulo">#FFFFFF</span>
+            </div>
+          </div>
+          <div class="color-item">
+            <span>Números</span>
+            <div class="color-swatch" onclick="document.getElementById('cNumeros').click()">
+              <input type="color" id="cNumeros" value="#FFD700" oninput="syncColor('cNumeros','hNumeros')">
+              <span class="color-hex" id="hNumeros">#FFD700</span>
+            </div>
+          </div>
+          <div class="color-item">
+            <span>Líneas / Borde</span>
+            <div class="color-swatch" onclick="document.getElementById('cLineas').click()">
+              <input type="color" id="cLineas" value="#FFFFFF" oninput="syncColor('cLineas','hLineas')">
+              <span class="color-hex" id="hLineas">#FFFFFF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="form-group">
+          <label>Precio (USD $)</label>
+          <input type="number" id="precio" min="0.01" step="0.01" value="5.00">
+        </div>
+        <div class="form-group">
+          <label>Cantidad boletas</label>
+          <input type="number" id="cantBoletas" min="15" max="1500" step="1" value="15">
+        </div>
+      </div>
+
+      <!-- slider, de numeros por boleta min 2 - max 6 -->
+      <div class="form-group">
+        <label>Números por boleta: <span id="numCountVal">4</span></label>
+        <div class="range-wrapper">
+          <input type="range" id="numCount" min="2" max="6" value="4" oninput="syncRange(this)">
+          <div class="range-val" id="numCountDisp">4</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-title">Destino del PDF</div>
+
+      <div id="apiWarning" class="api-warning">⚠️ El PDF se descargará en Descargas automáticamente.</div>
+
+      <div class="folder-picker-row" id="folderPickerRow" onclick="selectFolder()">
+        <div class="folder-icon">📁</div>
+        <div class="folder-info">
+          <div class="folder-label">Carpeta de guardado</div>
+          <div class="folder-path placeholder" id="folderPath">Clic para seleccionar carpeta...</div>
+        </div>
+        <div class="folder-badge none" id="folderBadge">—</div>
+      </div>
+
+      <div class="divider"></div>
+      <button class="btn btn-primary" onclick="generarBoletas()">📄 GENERAR PDF</button>
+      <button class="btn btn-secondary" id="btnGanador" onclick="seleccionarGanador()" disabled>🏆 SELECCIONAR GANADOR</button>
+
+    </div><!-- panel de informacion -->
+
+  </aside>
+
+  <main class="preview-area">
+    <div class="preview-header">
+      <div class="preview-title">VISTA PREVIA</div>
+      <div class="stats-row" id="statsRow" style="display:none">
+        <div class="stat-chip">Boletas: <span id="statBoletas">0</span></div>
+        <div class="stat-chip">Páginas: <span id="statPaginas">0</span></div>
+        <div class="stat-chip">Nums/boleta: <span id="statNums">0</span></div>
+      </div>
+    </div>
+    <!-- vista previa -->
+    <div class="live-preview-wrap">
+      <div class="live-badge">EN VIVO</div>
+      <div class="live-preview-label">
+        <div class="live-dot"></div>
+        Vista previa en tiempo real
+      </div>
+      <div class="live-boleta-outer">
+        <div class="live-boleta" id="liveBoleta"></div>
+      </div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="empty-icon">🎟️</div>
+      <div class="empty-text">No hay boletas generadas</div>
+      <div class="empty-hint">Completa los datos y haz clic en "GENERAR PDF"</div>
+    </div>
+    <div class="boletas-grid" id="boletasGrid" style="display:none"></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="winnerModal">
+  <div class="modal">
+    <div class="modal-title">🏆 GANADORES</div>
+    <div class="modal-sub">Resultados del sorteo aleatorio</div>
+    <div class="winner-cards" id="winnerCards"></div>
+    <div class="modal-btns">
+      <button class="btn-close" onclick="closeModal()">Cerrar</button>
+      <button class="btn-dl" onclick="descargarGanadoresPDF()">📄 DESCARGAR PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="generating-overlay" id="genOverlay">
+  <div class="generating-box">
+    <div class="spinner"></div>
+    <div class="gen-text" id="genText">Generando boletas...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="main.js"></script>
+</body>
+</html>
