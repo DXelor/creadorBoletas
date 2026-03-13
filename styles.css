@@ -40,7 +40,7 @@
   input[type="color"] { width:22px; height:22px; border:none; border-radius:4px; background:none; cursor:pointer; padding:0; flex-shrink:0; }
   .color-hex { font-family:'Space Mono',monospace; font-size:9px; color:var(--text); }
 
-  /* Rango — solo para numCount */
+  /* Rango — solo para contador de numeros */
   .range-wrapper { display:flex; align-items:center; gap:10px; }
   input[type="range"] { flex:1; -webkit-appearance:none; height:4px; background:var(--border); border-radius:2px; outline:none; }
   input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
