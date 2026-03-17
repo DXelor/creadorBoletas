@@ -219,12 +219,52 @@ function validate() {
   return true;
 }
 
-function buildPool(total, perB) {
-  const needed=total*perB;
-  if (needed>9999) { showToast('Demasiadas boletas para esa cantidad de números.','error'); return null; }
-  const all=Array.from({length:9999},(_,i)=>i+1);
-  for (let i=all.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [all[i],all[j]]=[all[j],all[i]]; }
-  return all.slice(0,needed);
+function buildPool(total, perB){
+  const needed = total * perB;
+  if(needed > 9999){showToast('Demasiadas boletas', 'error'); return null;}
+  const fechaKey = 'usedNums_' + (document.getElementById('fecha').value || 'nodate');
+  let used = new Set();
+  try {
+    const stored = localStorage.getItem(fechaKey);
+    if (stored) used = new Set(JSON.parse(stored));
+  } catch(e) {}
+  // Pool de números disponibles (1-9999) que NO han sido usados en esta fecha
+  const available = [];
+  for (let i = 1; i <= 9999; i++) {
+    if (!used.has(i)) available.push(i);
+  }
+
+  if (available.length < needed) {
+    showToast(`No hay suficientes números únicos disponibles para esta fecha. Usados: ${used.size}`, 'error');
+    return null;
+  }
+
+  // Mezcla aleatoria (Fisher-Yates)
+  for (let i = available.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [available[i], available[j]] = [available[j], available[i]];
+  }
+
+  const pool = available.slice(0, needed);
+
+  // Guardar los nuevos números usados en localStorage
+  pool.forEach(n => used.add(n));
+  try {
+    localStorage.setItem(fechaKey, JSON.stringify([...used]));
+  } catch(e) {
+    showToast('Advertencia: no se pudo guardar el historial de números.', 'error');
+  }
+
+  return pool;
+}
+
+//Resetear Fecha para pool
+function resetarFecha() {
+  const fechaVal = document.getElementById('fecha').value;
+  if (!fechaVal) { showToast('Selecciona una fecha primero', 'error'); return; }
+  const fechaKey = 'usedNums_' + fechaVal;
+  localStorage.removeItem(fechaKey);
+  showToast(`✓ Historial borrado para ${fmtDate(fechaVal)}`, 'success');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
