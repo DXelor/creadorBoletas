@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Tamaño de fuentes de texto en (pt)
 // ═══════════════════════════════════════════════════════════════════════════════
-const PDF_TITLE_PT  = 17;   // título siempre 14pt
-const PDF_MSG1_PT   = 8;   // mensaje 1 siempre 10pt
+const PDF_TITLE_PT  = 12;   // título siempre 14pt
+const PDF_MSG1_PT   = 9;   // mensaje 1 siempre 10pt
 const PDF_MSG2_PT   = 6;    // mensaje 2 siempre 7pt
-const PDF_NUM_PT    = 9;    // tamaño fijo para números en PDF
+const PDF_NUM_PT    = 16;    // tamaño fijo para números en PDF
+const PDF_PRICE_PT  = 6;    // Tamaño del precio
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Estado
@@ -16,6 +17,7 @@ let selectedDirHandle = null;
 let lastWinners = [];
 let selectedFont = 'helvetica';
 let selectedFontCSS = 'Arial';
+let shadowColor = '#000000';
 
 const fsaSupported = 'showDirectoryPicker' in window;
 if (!fsaSupported) {
@@ -77,12 +79,13 @@ function updateLivePreview() {
   const numCount  = parseInt(document.getElementById('numCount').value) || 4;
   const fontCSS   = selectedFontCSS;
   const fontW     = tituloBold ? 'bold' : 'normal';
+  shadowColor = document.getElementById('cSombra').value;
 
   const sampleNums = Array.from({length:numCount},(_,i)=>i*7+11);
   const numRowsHTML = [];
   for (let i=0;i<sampleNums.length;i+=2) {
     const pair=sampleNums.slice(i,i+2);
-    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${cN};border-color:${cN}">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
+    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${cN};border-color:${cN};text-shadow: 1px 1px 2px ${shadowColor};">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
   }
 
   const mainMsgs=[{text:msg1},{text:msg2}].filter(m=>m.text);
@@ -127,7 +130,7 @@ function updateLivePreview() {
 // Conectar todos los campos de entrada a la vista previa en tiempo real
 function wireInputs() {
   const ids=['titulo','fecha','expiracion','whatsapp','msg1','msg2',
-             'tituloBold','cTitulo','cNumeros','cLineas','precio','numCount'];
+             'tituloBold','cTitulo','cNumeros','cLineas','precio','numCount','cSombra'];
   ids.forEach(id=>{
     const el=document.getElementById(id);
     if(el){ el.addEventListener('input',updateLivePreview); el.addEventListener('change',updateLivePreview); }
@@ -330,7 +333,7 @@ function renderPreview(boletas) {
     const numRowsHTML=[];
     for (let i=0;i<b.nums.length;i+=2) {
       const pair=b.nums.slice(i,i+2);
-      numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${b.cN};border-color:${b.cN}">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
+      numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${b.cN};border-color:${b.cN};text-shadow: 2px 2px 1px ${shadowColor};">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
     }
     const mainMsgs=[
       {text:b.msg1},
@@ -383,7 +386,7 @@ function renderPreview(boletas) {
 const _textCanvas = document.createElement('canvas');
 const _textCtx = _textCanvas.getContext('2d');
 
-function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx) {
+function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx,shadowColor) {
   const SCALE = 4;
   const PX_PER_PT = 96 / 72;
   const pxSize = ptSize * PX_PER_PT * SCALE;
@@ -407,6 +410,10 @@ function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx
   _textCtx.fillStyle = color;
   _textCtx.textBaseline = 'alphabetic';
   _textCtx.textAlign = 'left';
+  _textCtx.shadowColor = shadowColor; // color de sombra
+  _textCtx.shadowBlur = 0.7;                  // difuminado
+  _textCtx.shadowOffsetX = 1;               // 1px derecha
+  _textCtx.shadowOffsetY = 1;               // 1px abajo
 
   if (maxWidthPx) {
     _textCtx.save();
@@ -434,7 +441,7 @@ function pdfText(pdf, text, fontCSS, ptSize, weight, color, xMM, yMM, opts) {
   const maxWidthMM = opts.maxWidthMM || null;
   const maxWidthPx = maxWidthMM ? maxWidthMM * (96/25.4) : null;
 
-  const { dataUrl, widthMM, heightMM } = renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx);
+  const { dataUrl, widthMM, heightMM } = renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx, shadowColor);
 
   let drawX = xMM;
   if (align === 'center') drawX = xMM - widthMM / 2;
@@ -549,7 +556,8 @@ function drawBoleta(pdf, b, x, y, w, h) {
   const PT_TO_MM = 25.4 / 72;
 
   pdfText(pdf, `#${b.id}`, fCSS, 5, 'normal', CT, hdrRightX, y + 1.2, {align:'right'});
-  pdfText(pdf, b.fecha, fCSS, 4.5, 'normal', CT, hdrRightX, y + 4.2, {align:'right', maxWidthMM: 28});
+  pdfText(pdf, b.fecha, fCSS, 6.5, 'normal', CT, hdrRightX, y + 3.5, {align:'right', maxWidthMM: 28});
+  pdfText(pdf,`Válido hasta: ${b.expir}`, fCSS, 4.5, 'normal', CT, hdrRightX, y + 6.2, {align:'right', maxWidthMM: 28});
 
   // Título centrado verticalmente en el header, yMM = arriba del texto
   const { heightMM: titleH } = renderTextToPNG(b.titulo.toUpperCase(), fCSS, tSz, fBold, CT, 'left', null);
@@ -588,10 +596,10 @@ function drawBoleta(pdf, b, x, y, w, h) {
   const numZoneW  = qrColX - x;
   const numsPerRow = 2;
   const rowCount   = Math.ceil(b.nums.length / numsPerRow);
-  const cellGap    = 2.5;  // gap entre celdas en mm
+  const cellGap    = 1.2;  // gap entre celdas en mm
 
   // Padding interno fijo: 5px top/bottom, 10px left/right → mm (96dpi)
-  const PX_TO_MM_CELL = 25.4 / 96;
+  const PX_TO_MM_CELL = 40 / 96;
   const cellPadX = 10 * PX_TO_MM_CELL;  // ~2.65 mm cada lado
   const cellPadY =  5 * PX_TO_MM_CELL;  // ~1.32 mm arriba y abajo
 
@@ -646,7 +654,7 @@ function drawBoleta(pdf, b, x, y, w, h) {
     const msgPadX = 2;
     const maxMsgW = w - msgPadX*2;
 
-    // Tamaños FIJOS: msg1=10pt, msg2=7pt — yMM ahora esta en el tope del texto
+    // Tamaños FIJOS: msg1=8pt, msg2=6pt — yMM ahora esta en el tope del texto
     const fixedMsgSizes = [PDF_MSG1_PT, PDF_MSG2_PT];
     // Calcular la altura total de las líneas del mensaje para centrar el bloque verticalmente
     const msgHeights = mainMsgs.map((msg, idx) =>
@@ -675,11 +683,11 @@ function drawBoleta(pdf, b, x, y, w, h) {
   pdf.line(x, legalY, x+w, legalY);
 
   const precioStr = `$${b.precio} USD`;
-  const { heightMM: precioH } = renderTextToPNG(precioStr, fCSS, 5, 'bold', b.cN, 'left', null);
+  const { heightMM: precioH } = renderTextToPNG(precioStr, fCSS, PDF_PRICE_PT, 'bold', b.cN, 'left', null);
   const precioY = legalY + (legalH - precioH) / 2;
-  pdfText(pdf, precioStr, fCSS, 5, 'bold', b.cN, x+w-1.5, precioY, {align:'right'});
+  pdfText(pdf, precioStr, fCSS, PDF_PRICE_PT, 'bold', b.cN, x+w-1.5, precioY, {align:'right'});
 
-  const precioWMM = renderTextToPNG(precioStr, fCSS, 5, 'bold', b.cN, 'left', null).widthMM + 3;
+  const precioWMM = renderTextToPNG(precioStr, fCSS, PDF_PRICE_PT, 'bold', b.cN, 'left', null).widthMM + 3;
   const legalMaxW = w - 4 - precioWMM;
   const legal = 'La Boleta se anulará si presenta tachones, borrones o enmendaduras. Se paga al portador.';
 
@@ -688,17 +696,17 @@ function drawBoleta(pdf, b, x, y, w, h) {
   let line = '';
   legalWords.forEach(word => {
     const test = line ? line+' '+word : word;
-    const { widthMM } = renderTextToPNG(test, fCSS, 5, 'normal', CT, 'left', null);
+    const { widthMM } = renderTextToPNG(test, fCSS, PDF_PRICE_PT, 'normal', CT, 'left', null);
     if (widthMM > legalMaxW && line) { legalLines.push(line); line = word; }
     else line = test;
   });
   if (line) legalLines.push(line);
 
-  const lLineH = renderTextToPNG('A', fCSS, 5, 'normal', CT, 'left', null).heightMM + 0.6;
+  const lLineH = renderTextToPNG('A', fCSS, PDF_PRICE_PT, 'normal', CT, 'left', null).heightMM + 0.6;
   const totalLH = legalLines.length * lLineH;
   let lY = legalY + (legalH - totalLH) / 2;
   legalLines.forEach(l => {
-    pdfText(pdf, l, fCSS, 5, 'normal', CT, x+2, lY, {align:'left'});
+    pdfText(pdf, l, fCSS, PDF_PRICE_PT, 'normal', CT, x+2, lY, {align:'left'});
     lY += lLineH;
   });
 }
