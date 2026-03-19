@@ -1,10 +1,28 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Tamaño de fuentes de texto en (pt)
 // ═══════════════════════════════════════════════════════════════════════════════
-const PDF_TITLE_PT  = 17;   // título siempre 14pt
+const PDF_TITLE_PT  = 17;   // título siempre 17pt
 const PDF_MSG1_PT   = 8;   // mensaje 1 siempre 10pt
 const PDF_MSG2_PT   = 6;    // mensaje 2 siempre 7pt
-const PDF_NUM_PT    = 9;    // tamaño fijo para números en PDF
+const PDF_NUM_PT    = 14;    // tamaño fijo para números en PDF
+const PDF_PRICE_PT  = 6;    // Tamaño del precio
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Estilo de fuentes de texto
+// ═══════════════════════════════════════════════════════════════════════════════
+const PDF_MSG2_BOLD = "Normal"; // Mensaje 2
+const PDF_NUM_BOLD = "bold"; // Numeros
+const PDF_PRICE_BOLD = "bold"; //Negrita para el precio
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Ids de Constantes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ids = [
+  'titulo','fecha','expiracion','whatsapp','msg1','msg2',
+  'tituloBold','cTitulo','cNumeros','cLineas','precio','numCount',
+  'cSombra'
+];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Estado
@@ -16,6 +34,7 @@ let selectedDirHandle = null;
 let lastWinners = [];
 let selectedFont = 'helvetica';
 let selectedFontCSS = 'Arial';
+let shadowColor = '#000000';
 
 const fsaSupported = 'showDirectoryPicker' in window;
 if (!fsaSupported) {
@@ -38,7 +57,7 @@ function syncRange(el) {
   document.getElementById('numCountDisp').textContent = el.value;
   updateLivePreview();
 }
-function syncColor(inId, hexId) {
+function syncColor(inId, hexId,) {
   document.getElementById(hexId).textContent = document.getElementById(inId).value.toUpperCase();
   updateLivePreview();
 }
@@ -51,7 +70,7 @@ function getDateTimeStr() {
 }
 function fmtDate(s) {
   if (!s) return '';
-  return new Date(s+'T12:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  return new Date(s+'T12:00:00').toLocaleDateString('es-CO',{year:'numeric',month:'2-digit',day:'2-digit'});
 }
 function showToast(msg, type='info') {
   const t=document.getElementById('toast');
@@ -66,6 +85,7 @@ function updateLivePreview() {
   const titulo    = document.getElementById('titulo').value.trim() || 'TÍTULO DE LA RIFA';
   const tituloBold= document.getElementById('tituloBold').checked;
   const fecha     = fmtDate(document.getElementById('fecha').value) || 'Fecha del sorteo';
+  const expiracion= fmtDate(document.getElementById('expiracion').value)|| 'Fecha de expiracion';
   const waNumer   = document.getElementById('whatsapp').value.trim();
   const whatsapp  = waNumer ? `Whatsapp: ${waNumer}` : '';
   const msg1      = document.getElementById('msg1').value.trim();
@@ -77,12 +97,19 @@ function updateLivePreview() {
   const numCount  = parseInt(document.getElementById('numCount').value) || 4;
   const fontCSS   = selectedFontCSS;
   const fontW     = tituloBold ? 'bold' : 'normal';
+  shadowColor = document.getElementById('cSombra').value;
 
   const sampleNums = Array.from({length:numCount},(_,i)=>i*7+11);
   const numRowsHTML = [];
   for (let i=0;i<sampleNums.length;i+=2) {
     const pair=sampleNums.slice(i,i+2);
-    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${cN};border-color:${cN}">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
+    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="
+  color:${cN};
+  border-color:${cN};
+  font-size:${PDF_NUM_PT * (96/72)}px;
+  font-weight:${PDF_NUM_BOLD};
+  text-shadow: 1px 1px 0.5px ${shadowColor};
+">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
   }
 
   const mainMsgs=[{text:msg1},{text:msg2}].filter(m=>m.text);
@@ -92,33 +119,56 @@ function updateLivePreview() {
     :`background:#16161e;`;
 
   document.getElementById('liveBoleta').innerHTML=`
-    <div style="position:relative;overflow:hidden;">
+    <div style="position:relative;overflow:hidden; ">
       <div style="position:absolute;inset:0;${bgStyle}"></div>
       <div class="bp-wrap" style="color:${cT};position:relative;z-index:1;">
         <div class="bp-hdr" style="border-color:${cL}">
-          <div class="bp-title" style="font-family:'${fontCSS}',sans-serif;font-weight:${fontW};">${titulo}</div>
+          <div class="bp-title" style="font-family:'${fontCSS}',sans-serif;font-weight:${fontW};font-size:${PDF_TITLE_PT * (96/72)}px;text-shadow: 1px 1px 0.5px ${shadowColor};">
           <div class="bp-hdr-right">
             <div class="bp-id">#0001</div>
-            <div class="bp-fecha-hdr">${fecha}</div>
+            <div class="bp-fecha-hdr">Valido hasta la fecha</div>
+            <div class="bp-fecha-hdr">${expiracion}</div>
           </div>
         </div>
-        <div class="bp-body">
-          <div class="bp-nums">${numRowsHTML.join('')}</div>
-          <div class="bp-right" style="border-color:${cL};background:rgba(255,255,255,0.96);border-radius:4px;margin:4px 0;">
-            <div class="bp-qr" style="width:100%;height:auto;aspect-ratio:1;background:transparent;font-size:38px;display:flex;align-items:center;justify-content:center;">▦</div>
-          </div>
+        <div class="bp-body" style="display:flex; height:100%;">
+  
+  <!-- ZONA NUMEROS -->
+  <div style="
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px;
+  ">
+    <div class="bp-nums">
+      ${numRowsHTML.join('')}
+    </div>
+  </div>
+
+  <!-- ZONA QR (igual que PDF) -->
+  <div style="
+    width:28%;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-left:2px solid ${cL};
+  ">
+    <div style="font-size:30px;">▦</div>
+  </div>
+
+</div>
         </div>
         ${hasAnyMsg?`
-        <div class="bp-msgs-wrap" style="border-color:${cL}">
-          ${mainMsgs.length?`
-          <div class="bp-msgs">
-            ${mainMsgs.map(m=>`<div>${m.text}</div>`).join('')}
-          </div>`:''}
+        <div class="bp-msgs-wrap" style="border-color:${cL}">${mainMsgs.length?
+        `<div class="bp-msgs">${mainMsgs.map((m,i)=>`
+      <div style="
+      font-size:${(i===0 ? PDF_MSG1_PT : PDF_MSG2_PT) * (96/72)}px;font-weight:${i===1 ? PDF_MSG2_BOLD : 'normal'};text-shadow: 1px 1px 0.5px ${shadowColor};">${m.text}</div>`).join('')}</div>`:''}
           ${whatsapp?`<div class="bp-wa" style="color:${cT}">${whatsapp}</div>`:''}
         </div>`:''}
         <div class="bp-footer" style="border-color:${cL}">
           <div class="bp-legal">La Boleta se anulará si presenta borrones o enmendaduras. Se paga al portador.</div>
-          <div class="bp-precio-footer" style="color:${cN}">$${precio}</div>
+          <div class="bp-precio-footer" style="color:${cN};font-size:${PDF_PRICE_PT * (96/72)}px;font-weight:${PDF_PRICE_BOLD};text-shadow: 1px 1px 0.5px ${shadowColor};">
         </div>
       </div>
     </div>`;
@@ -219,15 +269,18 @@ function validate() {
   return true;
 }
 
-function buildPool(total, perB){
+function buildPool(total, perB) {
   const needed = total * perB;
-  if(needed > 9999){showToast('Demasiadas boletas', 'error'); return null;}
+  if (needed > 9999) { showToast('Demasiadas boletas para esa cantidad de números.','error'); return null; }
+
+  // Clave única por fecha de sorteo
   const fechaKey = 'usedNums_' + (document.getElementById('fecha').value || 'nodate');
   let used = new Set();
   try {
     const stored = localStorage.getItem(fechaKey);
     if (stored) used = new Set(JSON.parse(stored));
   } catch(e) {}
+
   // Pool de números disponibles (1-9999) que NO han sido usados en esta fecha
   const available = [];
   for (let i = 1; i <= 9999; i++) {
@@ -239,7 +292,7 @@ function buildPool(total, perB){
     return null;
   }
 
-  // Mezcla aleatoria (Fisher-Yates)
+  // Mezc1drawBoletala aleatoria (Fisher-Yates)
   for (let i = available.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [available[i], available[j]] = [available[j], available[i]];
@@ -327,11 +380,29 @@ function renderPreview(boletas) {
     const el=document.createElement('div');
     el.className='boleta-preview';
 
-    const numRowsHTML=[];
-    for (let i=0;i<b.nums.length;i+=2) {
-      const pair=b.nums.slice(i,i+2);
-      numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${b.cN};border-color:${b.cN}">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
-    }
+    const numRowsHTML = `
+  <div style="
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:6px;
+    justify-items:center;
+  ">
+    ${sampleNums.map(n=>`
+      <div style="
+        padding:6px 10px;
+        border:2px solid ${cN};
+        border-radius:6px;
+        color:${cN};
+        font-size:${PDF_NUM_PT * (96/72)}px;
+        font-weight:${PDF_NUM_BOLD};
+        text-shadow: 2px 2px 1px ${shadowColor};
+        background:rgba(255,255,255,0.4);
+      ">
+        ${String(n).padStart(2,'0')}
+      </div>
+    `).join('')}
+  </div>
+`;
     const mainMsgs=[
       {text:b.msg1},
       {text:b.msg2}
@@ -342,7 +413,12 @@ function renderPreview(boletas) {
     el.innerHTML=`
       ${bgImageData?`<div class="bp-bg" style="background-image:url(${bgImageData})"></div><div class="bp-overlay"></div>`:''}
       <div class="bp-wrap" style="color:${b.cT}">
-        <div class="bp-hdr" style="border-color:${b.cL}">
+        <div class="bp-hdr" style="
+  border-bottom:2px solid ${cL};
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+">
           <div class="bp-title" style="${titleStyle}">${b.titulo}</div>
           <div class="bp-hdr-right">
             <div class="bp-id">#${b.id}</div>
@@ -356,14 +432,24 @@ function renderPreview(boletas) {
           </div>
         </div>
         ${hasAnyMsg ? `
-        <div class="bp-msgs-wrap" style="border-color:${b.cL}">
+        <div class="bp-msgs-wrap" style="
+  border-top:2px solid ${cL};
+  text-align:center;
+  padding:6px 4px;
+">
           ${mainMsgs.length ? `
           <div class="bp-msgs">
             ${mainMsgs.map(m=>`<div>${m.text}</div>`).join('')}
           </div>` : ''}
           ${b.whatsapp ? `<div class="bp-wa" style="color:${b.cT}">${b.whatsapp}</div>` : ''}
         </div>` : ''}
-        <div class="bp-footer" style="border-color:${b.cL}">
+        <div class="bp-footer" style="
+  border-top:2px solid ${cL};
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:4px;
+">
           <div class="bp-legal">La Boleta se anulará si presenta borrones o enmendaduras. Se paga al portador.</div>
           <div class="bp-precio-footer" style="color:${b.cN}">$${b.precio}</div>
         </div>
@@ -383,7 +469,7 @@ function renderPreview(boletas) {
 const _textCanvas = document.createElement('canvas');
 const _textCtx = _textCanvas.getContext('2d');
 
-function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx) {
+function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx,shadowColor) {
   const SCALE = 4;
   const PX_PER_PT = 96 / 72;
   const pxSize = ptSize * PX_PER_PT * SCALE;
@@ -407,6 +493,10 @@ function renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx
   _textCtx.fillStyle = color;
   _textCtx.textBaseline = 'alphabetic';
   _textCtx.textAlign = 'left';
+  _textCtx.shadowColor = shadowColor; // color de sombra
+  _textCtx.shadowBlur = 0.5;                  // difuminado
+  _textCtx.shadowOffsetX = 1;               // 1px derecha
+  _textCtx.shadowOffsetY = 1;               // 1px abajo
 
   if (maxWidthPx) {
     _textCtx.save();
@@ -434,7 +524,7 @@ function pdfText(pdf, text, fontCSS, ptSize, weight, color, xMM, yMM, opts) {
   const maxWidthMM = opts.maxWidthMM || null;
   const maxWidthPx = maxWidthMM ? maxWidthMM * (96/25.4) : null;
 
-  const { dataUrl, widthMM, heightMM } = renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx);
+  const { dataUrl, widthMM, heightMM } = renderTextToPNG(text, fontCSS, ptSize, weight, color, align, maxWidthPx, shadowColor);
 
   let drawX = xMM;
   if (align === 'center') drawX = xMM - widthMM / 2;
@@ -549,7 +639,8 @@ function drawBoleta(pdf, b, x, y, w, h) {
   const PT_TO_MM = 25.4 / 72;
 
   pdfText(pdf, `#${b.id}`, fCSS, 5, 'normal', CT, hdrRightX, y + 1.2, {align:'right'});
-  pdfText(pdf, b.fecha, fCSS, 4.5, 'normal', CT, hdrRightX, y + 4.2, {align:'right', maxWidthMM: 28});
+  pdfText(pdf, b.fecha, fCSS, 6.5, 'normal', CT, hdrRightX, y + 3.5, {align:'right', maxWidthMM: 28});
+  pdfText(pdf,`Válido hasta: ${b.expir}`, fCSS, 4.5, 'normal', CT, hdrRightX, y + 6.2, {align:'right', maxWidthMM: 28});
 
   // Título centrado verticalmente en el header, yMM = arriba del texto
   const { heightMM: titleH } = renderTextToPNG(b.titulo.toUpperCase(), fCSS, tSz, fBold, CT, 'left', null);
@@ -575,7 +666,7 @@ function drawBoleta(pdf, b, x, y, w, h) {
   const qrX    = qrColX + (qrColW - qrSize) / 2;
   const qrY    = midY   + (midH   - qrSize) / 2+0.5;
 
-  const qrContent = `Numero:${b.nums.join(',')}-Fecha:${b.fecha}-Whatsapp:${b.waNumer||''}`;
+  const qrContent = `Numero:${b.nums.join(',')}-Fecha:${b.fecha}-Vence:${b.expir}-Whatsapp:${b.waNumer||''}`;
   const qrURL = makeQR(qrContent, 2048);
   if (qrURL) {
     pdf.addImage(qrURL, 'PNG', qrX, qrY, qrSize, qrSize);
@@ -588,15 +679,15 @@ function drawBoleta(pdf, b, x, y, w, h) {
   const numZoneW  = qrColX - x;
   const numsPerRow = 2;
   const rowCount   = Math.ceil(b.nums.length / numsPerRow);
-  const cellGap    = 2.5;  // gap entre celdas en mm
+  const cellGap    = 1;  // gap entre celdas en mm
 
   // Padding interno fijo: 5px top/bottom, 10px left/right → mm (96dpi)
-  const PX_TO_MM_CELL = 25.4 / 96;
+  const PX_TO_MM_CELL = 40 / 96;
   const cellPadX = 10 * PX_TO_MM_CELL;  // ~2.65 mm cada lado
   const cellPadY =  5 * PX_TO_MM_CELL;  // ~1.32 mm arriba y abajo
 
   // Renderizar "00" para obtener dimensiones reales del PNG
-  const numSample = renderTextToPNG('00', fCSS, PDF_NUM_PT, 'bold', b.cN, 'left', null);
+  const numSample = renderTextToPNG('00', fCSS, PDF_NUM_PT, PDF_NUM_BOLD, b.cN, 'left', null);
   const numImgW = numSample.widthMM;
   const numImgH = numSample.heightMM;
 
@@ -630,7 +721,7 @@ function drawBoleta(pdf, b, x, y, w, h) {
 
     // Renderizar el número real y obtener sus dimensiones exactas
     const numStr = String(b.nums[ni]).padStart(2,'0');
-    const { dataUrl, widthMM, heightMM } = renderTextToPNG(numStr, fCSS, PDF_NUM_PT, 'bold', b.cN, 'left', null);
+    const { dataUrl, widthMM, heightMM } = renderTextToPNG(numStr, fCSS, PDF_NUM_PT, PDF_NUM_BOLD, b.cN, 'left', null);
 
     // Centrado perfecto: imagen colocada en el centro exacto de la caja
     const imgX = bx + (cellW - widthMM) / 2;
@@ -657,7 +748,7 @@ function drawBoleta(pdf, b, x, y, w, h) {
     let curY = msgY + msgPadTop + Math.max(0, (mainZoneH - totalMsgBlockH) / 2);
 
     mainMsgs.forEach((msg, idx) => {
-      pdfText(pdf, msg, fCSS, fixedMsgSizes[idx] || PDF_MSG2_PT, 'bold', CT,
+      pdfText(pdf, msg, fCSS, fixedMsgSizes[idx] || PDF_MSG2_PT, PDF_MSG2_BOLD, CT,
         x + w/2, curY, {align:'center', maxWidthMM: maxMsgW});
       curY += msgHeights[idx] + 1.0;
     });
@@ -675,11 +766,11 @@ function drawBoleta(pdf, b, x, y, w, h) {
   pdf.line(x, legalY, x+w, legalY);
 
   const precioStr = `$${b.precio} USD`;
-  const { heightMM: precioH } = renderTextToPNG(precioStr, fCSS, 5, 'bold', b.cN, 'left', null);
+  const { heightMM: precioH } = renderTextToPNG(precioStr, fCSS, PDF_PRICE_PT, PDF_PRICE_BOLD, b.cN, 'left', null);
   const precioY = legalY + (legalH - precioH) / 2;
-  pdfText(pdf, precioStr, fCSS, 5, 'bold', b.cN, x+w-1.5, precioY, {align:'right'});
+  pdfText(pdf, precioStr, fCSS, PDF_PRICE_PT, PDF_PRICE_BOLD, b.cN, x+w-1.5, precioY, {align:'right'});
 
-  const precioWMM = renderTextToPNG(precioStr, fCSS, 5, 'bold', b.cN, 'left', null).widthMM + 3;
+  const precioWMM = renderTextToPNG(precioStr, fCSS, PDF_PRICE_PT, PDF_PRICE_BOLD, b.cN, 'left', null).widthMM + 3;
   const legalMaxW = w - 4 - precioWMM;
   const legal = 'La Boleta se anulará si presenta tachones, borrones o enmendaduras. Se paga al portador.';
 
@@ -688,17 +779,17 @@ function drawBoleta(pdf, b, x, y, w, h) {
   let line = '';
   legalWords.forEach(word => {
     const test = line ? line+' '+word : word;
-    const { widthMM } = renderTextToPNG(test, fCSS, 5, 'normal', CT, 'left', null);
+    const { widthMM } = renderTextToPNG(test, fCSS, 6, 'bold', CT, 'left', null);
     if (widthMM > legalMaxW && line) { legalLines.push(line); line = word; }
     else line = test;
   });
   if (line) legalLines.push(line);
 
-  const lLineH = renderTextToPNG('A', fCSS, 5, 'normal', CT, 'left', null).heightMM + 0.6;
+  const lLineH = renderTextToPNG('A', fCSS, 6, 'bold', CT, 'left', null).heightMM + 0.6;
   const totalLH = legalLines.length * lLineH;
   let lY = legalY + (legalH - totalLH) / 2;
   legalLines.forEach(l => {
-    pdfText(pdf, l, fCSS, 5, 'normal', CT, x+2, lY, {align:'left'});
+    pdfText(pdf, l, fCSS, 6, 'bold', CT, x+2, lY, {align:'left'});
     lY += lLineH;
   });
 }
