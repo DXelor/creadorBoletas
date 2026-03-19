@@ -78,7 +78,6 @@ function updateLivePreview() {
   const fontCSS   = selectedFontCSS;
   const fontW     = tituloBold ? 'bold' : 'normal';
 
-  const sampleNums = Array.from({length:numCount},(_,i)=>i*7+11);
   const numRowsHTML = [];
   for (let i=0;i<sampleNums.length;i+=2) {
     const pair=sampleNums.slice(i,i+2);
