@@ -100,17 +100,20 @@ function updateLivePreview() {
   shadowColor = document.getElementById('cSombra').value;
 
   const sampleNums = Array.from({length:numCount},(_,i)=>i*7+11);
+
   const numRowsHTML = [];
-  for (let i=0;i<sampleNums.length;i+=2) {
-    const pair=sampleNums.slice(i,i+2);
-    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="
-  color:${cN};
-  border-color:${cN};
-  font-size:${PDF_NUM_PT * (96/72)}px;
-  font-weight:${PDF_NUM_BOLD};
-  text-shadow: 1px 1px 0.5px ${shadowColor};
-">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
-  }
+for (let i = 0; i < b.nums.length; i += 2) {
+  const pair = b.nums.slice(i, i + 2);
+  numRowsHTML.push(`
+    <div class="bp-numrow">
+      ${pair.map(n => `
+        <div class="bp-num" style="color:${b.cN};border-color:${b.cN}">
+          ${String(n).padStart(2,'0')}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
 
   const mainMsgs=[{text:msg1},{text:msg2}].filter(m=>m.text);
   const hasAnyMsg=mainMsgs.length>0||whatsapp;
