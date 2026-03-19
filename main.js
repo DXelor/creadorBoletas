@@ -2,8 +2,8 @@
 // Tamaño de fuentes de texto en (pt)
 // ═══════════════════════════════════════════════════════════════════════════════
 const PDF_TITLE_PT  = 14;   // título siempre 14pt
-const PDF_MSG1_PT   = 8.5;   // mensaje 1 siempre 10pt
-const PDF_MSG2_PT   = 6;    // mensaje 2 siempre 7pt
+const PDF_MSG1_PT   = 8.5;   // mensaje 1 siempre 5.5pt
+const PDF_MSG2_PT   = 6;    // mensaje 2 siempre 6pt
 const PDF_NUM_PT    = 16;    // tamaño fijo para números en PDF
 const PDF_PRICE_PT  = 6;    // Tamaño del precio
 
@@ -85,7 +85,7 @@ function updateLivePreview() {
   const numRowsHTML = [];
   for (let i=0;i<sampleNums.length;i+=2) {
     const pair=sampleNums.slice(i,i+2);
-    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${cN};border-color:${cN};text-shadow: 1px 1px 2px ${shadowColor};">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
+    numRowsHTML.push(`<div class="bp-numrow">${pair.map(n=>`<div class="bp-num" style="color:${cN};border-color:${cN};">${String(n).padStart(2,'0')}</div>`).join('')}</div>`);
   }
 
   const mainMsgs=[{text:msg1},{text:msg2}].filter(m=>m.text);
@@ -99,10 +99,10 @@ function updateLivePreview() {
       <div style="position:absolute;inset:0;${bgStyle}"></div>
       <div class="bp-wrap" style="color:${cT};position:relative;z-index:1;">
         <div class="bp-hdr" style="border-color:${cL}">
-          <div class="bp-title" style="font-family:'${fontCSS}',sans-serif;font-weight:${fontW};">${titulo}</div>
+          <div class="bp-title" style="font-family:'${fontCSS}',sans-serif;font-weight:${fontW};text-shadow: 2px 2px 1px ${shadowColor};">${titulo}</div>
           <div class="bp-hdr-right">
-            <div class="bp-id">#0001</div>
-            <div class="bp-fecha-hdr">${fecha}</div>
+            <div class="bp-id" style="text-shadow: 2px 2px 1px ${shadowColor};">#0001</div>
+            <div class="bp-fecha-hdr" style="text-shadow: 1px 1px 2px ${shadowColor};">${fecha}</div>
           </div>
         </div>
         <div class="bp-body">
@@ -115,7 +115,7 @@ function updateLivePreview() {
         <div class="bp-msgs-wrap" style="border-color:${cL}">
           ${mainMsgs.length?`
           <div class="bp-msgs">
-            ${mainMsgs.map(m=>`<div>${m.text}</div>`).join('')}
+            ${mainMsgs.map(m=>`<div style="text-shadow: 2px 2px 1px ${shadowColor};">${m.text}</div>`).join('')}
           </div>`:''}
           ${whatsapp?`<div class="bp-wa" style="color:${cT}">${whatsapp}</div>`:''}
         </div>`:''}

@@ -40,7 +40,7 @@
   input[type="color"] { width:22px; height:22px; border:none; border-radius:4px; background:none; cursor:pointer; padding:0; flex-shrink:0; }
   .color-hex { font-family:'Space Mono',monospace; font-size:9px; color:var(--text); }
 
-  /* Rango — solo para contador de numeros */
+  /* Rango — contador de numeros */
   .range-wrapper { display:flex; align-items:center; gap:10px; }
   input[type="range"] { flex:1; -webkit-appearance:none; height:4px; background:var(--border); border-radius:2px; outline:none; }
   input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
@@ -117,7 +117,7 @@
   }
   .live-boleta:hover { border-color: var(--accent); }
 
-  /* vista previa de Boleta (grid cards) */
+  /* vista previa de Boleta*/
   .boleta-preview { border:1px solid var(--border); border-radius:5px; overflow:hidden; position:relative;
     background:var(--card); cursor:pointer; transition:all .2s; font-family:'Space Mono',monospace; }
   .boleta-preview:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.4); }
