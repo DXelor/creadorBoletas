@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Tamaño de fuentes de texto en (pt)
 // ═══════════════════════════════════════════════════════════════════════════════
-const PDF_TITLE_PT  = 12;   // título siempre 14pt
-const PDF_MSG1_PT   = 9;   // mensaje 1 siempre 10pt
+const PDF_TITLE_PT  = 14;   // título siempre 14pt
+const PDF_MSG1_PT   = 8.5;   // mensaje 1 siempre 10pt
 const PDF_MSG2_PT   = 6;    // mensaje 2 siempre 7pt
 const PDF_NUM_PT    = 16;    // tamaño fijo para números en PDF
 const PDF_PRICE_PT  = 6;    // Tamaño del precio
